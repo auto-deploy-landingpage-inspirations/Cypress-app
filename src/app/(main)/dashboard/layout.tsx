@@ -1,3 +1,4 @@
+import { Toaster } from '@/components/ui/toaster';
 import React from 'react'
 
 interface LayoutProps {
@@ -9,6 +10,7 @@ const Layout = ({children,params}:LayoutProps) => {
   return (
     <main className="flex over-hidden h-screen">
         {children}
+        
         </main>
   )
 }

@@ -1,7 +1,9 @@
 "use client";
-
 import { AuthUser } from "@supabase/supabase-js";
 import React, { useState } from "react";
+import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { v4 } from "uuid";
+
 import {
   Card,
   CardContent,
@@ -12,38 +14,116 @@ import {
 import EmojiPicker from "../global/emoji-picker";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { FieldValues, useForm } from "react-hook-form";
-import { Subscription } from "@/lib/supabase/supabase.types";
+import { Subscription, workspace } from "@/lib/supabase/supabase.types";
 import { Button } from "../ui/button";
 import Loader from "../global/loader";
-import { z } from 'zod';
+import { createWorkSpace } from "@/lib/supabase/queries";
+import { useToast } from "../ui/use-toast";
+import { useRouter } from "next/navigation";
+import { useAppState } from "@/lib/providers/state-provider";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { CreateWorkspaceFormSchema } from "@/lib/types";
+import { z } from "zod";
 
 interface DashboardSetupProps {
   user: AuthUser;
   subscription: Subscription | null;
 }
 
-const DashboardSetup = ({ user, subscription }: DashboardSetupProps) => {
+const DashboardSetup: React.FC<DashboardSetupProps> = ({
+  subscription,
+  user,
+}) => {
+  const { toast } = useToast();
+  const router = useRouter();
+  const { dispatch } = useAppState();
   const [selectedEmoji, setSelectedEmoji] = useState("💼");
+  const supabase = createClientComponentClient();
   const {
     register,
     handleSubmit,
     reset,
     formState: { isSubmitting: isLoading, errors },
   } = useForm<z.infer<typeof CreateWorkspaceFormSchema>>({
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
-      logo: '',
-      workspaceName: '',
+      logo: "",
+      workspaceName: "",
     },
   });
+
+  const onSubmit: SubmitHandler<
+    z.infer<typeof CreateWorkspaceFormSchema>
+  > = async (value) => {
+    const file = value.logo?.[0];
+    let filePath = null;
+    const workspaceUUID = v4();
+    console.log(file);
+
+    if (file) {
+      try {
+        const { data, error } = await supabase.storage
+          .from("workspace-logos")
+          .upload(`workspaceLogo.${workspaceUUID}`, file, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+        if (error) throw new Error("");
+        filePath = data.path;
+      } catch (error) {
+        console.log("Error", error);
+        toast({
+          variant: "destructive",
+          title: "Error! Could not upload your workspace logo",
+        });
+      }
+    }
+    try {
+      const newWorkspace: workspace = {
+        data: null,
+        createdAt: new Date().toISOString(),
+        iconId: selectedEmoji,
+        id: workspaceUUID,
+        inTrash: "",
+        title: value.workspaceName,
+        workspaceOwner: user.id,
+        logo: filePath || null,
+        bannerUrl: "",
+      };
+      const { data, error: createError } = await createWorkSpace(newWorkspace);
+      if (createError) {
+        throw new Error();
+      }
+      dispatch({
+        type: "ADD_WORKSPACE",
+        payload: { ...newWorkspace, folders: [] },
+      });
+
+      toast({
+        title: "Workspace Created",
+        description: `${newWorkspace.title} has been created successfully.`,
+      });
+
+      router.replace(`/dashboard/${newWorkspace.id}`);
+    } catch (error) {
+      console.log(error, "Error");
+      toast({
+        variant: "destructive",
+        title: "Could not create your workspace",
+        description:
+          "Oops! Something went wrong, and we couldn't create your workspace. Try again or come back later.",
+      });
+    } finally {
+      reset();
+    }
+  };
+
   return (
     <Card
       className="w-[800px]
-   h-screen
-   sm:h-auto
-"
+      h-screen
+      sm:h-auto
+  "
     >
       <CardHeader>
         <CardTitle>Create A Workspace</CardTitle>
@@ -53,15 +133,19 @@ const DashboardSetup = ({ user, subscription }: DashboardSetupProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={() => {}}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-4">
+            <div
+              className="flex
+            items-center
+            gap-4"
+            >
               <div className="text-5xl">
                 <EmojiPicker getValue={(emoji) => setSelectedEmoji(emoji)}>
                   {selectedEmoji}
                 </EmojiPicker>
               </div>
-              <div className="w-full">
+              <div className="w-full ">
                 <Label
                   htmlFor="workspaceName"
                   className="text-sm
@@ -98,7 +182,7 @@ const DashboardSetup = ({ user, subscription }: DashboardSetupProps) => {
                 type="file"
                 accept="image/*"
                 placeholder="Workspace Name"
-                disabled={isLoading}
+                // disabled={isLoading || subscription?.status !== 'active'}
                 {...register("logo", {
                   required: false,
                 })}
@@ -106,23 +190,21 @@ const DashboardSetup = ({ user, subscription }: DashboardSetupProps) => {
               <small className="text-red-600">
                 {errors?.logo?.message?.toString()}
               </small>
-
               {subscription?.status !== "active" && (
                 <small
                   className="
-                        text-muted-foreground
-                        block
-                    "
+                  text-muted-foreground
+                  block
+              "
                 >
                   To customize your workspace, you need to be on a Pro Plan
                 </small>
               )}
             </div>
             <div className="self-end">
-                <Button disabled={isLoading} type="submit">
-                {!isLoading ? 'Create Workspace' : <Loader />}
-
-                </Button>
+              <Button disabled={isLoading} type="submit">
+                {!isLoading ? "Create Workspace" : <Loader />}
+              </Button>
             </div>
           </div>
         </form>

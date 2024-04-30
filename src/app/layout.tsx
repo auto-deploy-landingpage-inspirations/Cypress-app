@@ -4,6 +4,9 @@ import "./globals.css";
 import db from "@/lib/supabase/db";
 import { ThemeProvider } from "@/lib/providers/next-theme-provider";
 import { twMerge } from "tailwind-merge";
+import AppStateProvider from "@/lib/providers/state-provider";
+import { Toaster } from "@/components/ui/toaster";
+import SupabaseUserProvider from "@/lib/providers/supabase-user-provider";
 
 const inter = DM_Sans({ subsets: ["latin"] });
 
@@ -17,6 +20,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  console.log(db);
  
   return (
     <html lang="en">
@@ -27,7 +32,12 @@ export default function RootLayout({
          enableSystem
          forcedTheme="dark"
         >
-        {children}
+        <AppStateProvider>
+       <SupabaseUserProvider>
+       {children}
+        <Toaster />
+       </SupabaseUserProvider>
+        </AppStateProvider>
         </ThemeProvider>
       </body>
     </html>
