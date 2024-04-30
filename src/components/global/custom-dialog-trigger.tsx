@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,8 +6,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
-import clsx from "clsx";
+} from '@/components/ui/dialog';
+import clsx from 'clsx';
 
 interface CustomDialogTriggerProps {
   header?: string;
@@ -17,17 +17,16 @@ interface CustomDialogTriggerProps {
   className?: string;
 }
 
-const CustomDialogTrigger = ({
+const CustomDialogTrigger: React.FC<CustomDialogTriggerProps> = ({
   header,
   content,
   children,
   description,
   className,
-}: CustomDialogTriggerProps) => {
+}) => {
   return (
     <Dialog>
-      <DialogTrigger className={clsx("", className)}>{children}</DialogTrigger>
-
+      <DialogTrigger className={clsx('', className)}>{children}</DialogTrigger>
       <DialogContent
         className="h-screen
         block
