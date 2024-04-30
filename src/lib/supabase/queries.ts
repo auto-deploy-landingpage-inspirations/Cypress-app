@@ -137,12 +137,10 @@ export const getCollaboratingWorkspaces = async (userId: string) => {
 };
 
 
-export const getSharedWorkspaces=async(userId:string)=>{
-
+export const getSharedWorkspaces = async (userId: string) => {
   if (!userId) return [];
-
-  const sharedWorkspaces = await db
-    .select({
+  const sharedWorkspaces = (await db
+    .selectDistinct({
       id: workspaces.id,
       createdAt: workspaces.createdAt,
       workspaceOwner: workspaces.workspaceOwner,
@@ -155,25 +153,30 @@ export const getSharedWorkspaces=async(userId:string)=>{
     })
     .from(workspaces)
     .orderBy(workspaces.createdAt)
-    .innerJoin(collaborators, eq(workspaces.id, collaborators.userId))
-   
-    .where(eq(workspaces.workspaceOwner, userId)) as workspace[];
-
+    .innerJoin(collaborators, eq(workspaces.id, collaborators.workspaceId))
+    .where(eq(workspaces.workspaceOwner, userId))) as workspace[];
   return sharedWorkspaces;
-  
-}
+};
 
 
 
-export const addCollaborators=async(users:User[],workspaceId:string)=>{
-  const response=users.forEach(async(user:User)=>{
-    const userExists=await db.query.collaborators.findFirst({
-      where:(u,{eq})=> and(eq(u.userId, user.id), eq(u.workspaceId, workspaceId)),
-    })
-
+export const addCollaborators = async (users: User[], workspaceId: string) => {
+  const response = users.forEach(async (user: User) => {
+    const userExists = await db.query.collaborators.findFirst({
+      where: (u, { eq }) =>
+        and(eq(u.userId, user.id), eq(u.workspaceId, workspaceId)),
+    });
     if (!userExists)
       await db.insert(collaborators).values({ workspaceId, userId: user.id });
-  })
+  });
+};
 
 
-}
+export const getUsersFromSearch = async (email: string) => {
+  if (!email) return [];
+  const accounts = db
+    .select()
+    .from(users)
+    .where(ilike(users.email, `${email}%`));
+  return accounts;
+};

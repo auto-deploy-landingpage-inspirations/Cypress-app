@@ -38,17 +38,13 @@ const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
     }
   }, [privateWorkspaces, collaboratingWorkspaces, sharedWorkspaces]);
 
+ 
+
   const handleSelect = (option: workspace) => {
     setSelectedOption(option);
     setIsOpen(false);
   };
 
-  useEffect(() => {
-    const findSelectedWorkspace = state.workspaces.find(
-      (workspace) => workspace.id === defaultValue?.id
-    );
-    if (findSelectedWorkspace) setSelectedOption(findSelectedWorkspace);
-  }, [state, defaultValue]);
 
   return (
     <div
@@ -82,7 +78,7 @@ const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
           border-muted
       "
         >
-          <div className="rounded-md flex flex-col ">
+          <div className="rounded-md flex flex-col">
             <div className="!p-2">
               {!!privateWorkspaces.length && (
                 <>

@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1713690690412,
-      "tag": "0000_absurd_pete_wisdom",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1713690810621,
-      "tag": "0001_true_slapstick",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1713691078814,
-      "tag": "0002_zippy_living_tribunal",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1713691241420,
-      "tag": "0003_brown_sage",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1713691270582,
-      "tag": "0004_serious_gorilla_man",
+      "when": 1714495475661,
+      "tag": "0000_greedy_havok",
       "breakpoints": true
     }
   ]
